@@ -31,10 +31,52 @@ sub scoretobinary(@values) {
     return ($gamma, $epsilon);
 }
 
+sub bintonum($number) {
+    return ("0b" ~ Str($number)).Int;
+}
+
+sub oxgenrating(@numbers) {
+    my @results = @numbers;
+    loop (my $i = 0; $i < @numbers[0].comb.elems; $i++) {
+        my %current;
+        for @results -> $number {
+            my $val = $number.comb[$i];
+            %current{$val}.push($number);
+        }
+        if %current{"0"}.elems > %current{"1"}.elems {
+            @results = (%current{"0"}.split(" ", :skip-empty));
+        } else {
+            @results = (%current{"1"}.split(" ", :skip-empty));
+        }
+    }
+    return bintonum(@results[0]);
+}
+
+sub co2scrubrating(@numbers) {
+    my @results = @numbers;
+    loop (my $i = 0; $i < @numbers[0].comb.elems; $i++) {
+        my %current;
+        for @results -> $number {
+            my $val = $number.comb[$i];
+            %current{$val}.push($number);
+        }
+        if %current{"0"}.elems > %current{"1"}.elems {
+            @results = (%current{"1"}.split(" ", :skip-empty));
+        } else {
+            @results = (%current{"0"}.split(" ", :skip-empty));
+        }
+        if @results.elems == 1 {
+            last;
+        }
+    }
+    return bintonum(@results[0]);
+}
+
 sub MAIN(
     Str :f($file),
 ){
     my $data = slurp $file;
     my $result1 = scorelist($data.lines);
     say "first half: $result1";
+    say "second half: " ~ (oxgenrating($data.lines) * co2scrubrating($data.lines));
 }
